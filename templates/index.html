@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>FitBot - Your AI Fitness Trainer</title>
+        <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+    </head>
+    <body>
+        <div class="container">
+            <div class="theme-toggle">
+                <label class="switch">
+                    <input type="checkbox" id="theme-switch" onchange="toggleTheme()">
+                    <span class="slider round">
+                        <span class="light-mode slider-icon">☀️</span>
+                        <span class="dark-mode slider-icon">🌙</span>
+                    </span>
+                </label>
+            </div>
+            <div class="header">
+                <img src="{{ url_for('static', filename='images/logo.png') }}" alt="FitBot Logo" class="logo">
+                <h1>FitBot</h1>
+            </div>
+            
+            <div class="chat-container" id="chat-container">
+                <div class="message bot-message">
+                    Hi! I'm your personal fitness assistant. How can I help you today?
+                </div>
+            </div>
+            
+            <div id="chat-input">
+                <input type="text" id="message" placeholder="Ask me about fitness...">
+                <button id="send-button">Send</button>
+            </div>
+        </div>
+        <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+    </body>
+</html>
