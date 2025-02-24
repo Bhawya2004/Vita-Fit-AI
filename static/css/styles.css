@@ -26,8 +26,9 @@ body {
 }
 
 .logo-text {
-    font-size: 4em;
-    margin-bottom: 10px;
+    width: 80px;
+    height: 80px;
+    margin: 0 auto 10px;
     animation: pulse 2s infinite;
     transition: transform 0.3s ease;
 }
@@ -553,4 +554,9 @@ input:checked + .slider:before {
 /* Dark mode link styles */
 [data-theme="dark"] .message a {
     color: #00d1b2;
+}
+
+.dumbbell-icon {
+    width: 100%;
+    height: 100%;
 } 
