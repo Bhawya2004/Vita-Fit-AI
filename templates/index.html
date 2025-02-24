@@ -5,6 +5,7 @@
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>FitBot - Your AI Fitness Trainer</title>
         <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     </head>
     <body>
         <div class="container">
@@ -32,6 +33,23 @@
                 <input type="text" id="message" placeholder="Ask me about fitness...">
                 <button id="send-button">Send</button>
             </div>
+
+            <footer class="footer">
+                <div class="footer-content">
+                    <span>Developed by Bhawya Gulati</span>
+                    <div class="social-icons">
+                        <a href="https://www.instagram.com/bha_wya?igsh=ejRndXZidm03Z3Bn" target="_blank" rel="noopener noreferrer">
+                            <i class="fab fa-instagram"></i>
+                        </a>
+                        <a href="https://github.com/Bhawya2004" target="_blank" rel="noopener noreferrer">
+                            <i class="fab fa-github"></i>
+                        </a>
+                        <a href="https://www.linkedin.com/in/bhawya-gulati-b5961a283" target="_blank" rel="noopener noreferrer">
+                            <i class="fab fa-linkedin"></i>
+                        </a>
+                    </div>
+                </div>
+            </footer>
         </div>
         <script src="{{ url_for('static', filename='js/script.js') }}"></script>
     </body>
