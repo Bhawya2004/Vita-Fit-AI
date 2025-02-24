@@ -21,15 +21,7 @@ load_dotenv()
 api_key = os.getenv("GEMINI_API_KEY")
 youtube_api_key = os.getenv("YOUTUBE_API_KEY")
 
-# Add debug prints
-print("Current directory:", os.getcwd())
-print("Env file exists:", os.path.exists('.env'))
-print("GEMINI_API_KEY:", api_key)
-print("YOUTUBE_API_KEY:", youtube_api_key)
-
-with open('.env', 'r') as f:
-    print("ENV file contents:", f.read())
-
+# Remove debug prints for production
 if not api_key or not youtube_api_key:
     print("Error: GEMINI_API_KEY or YOUTUBE_API_KEY not found. Please set them in .env file.")
     exit(1)
@@ -158,8 +150,14 @@ def chat_with_gemini(prompt):
             return "I'm here to assist with fitness inquiries. How can I help?"
         
         return bot_response.strip()
+    except requests.exceptions.RequestException as e:
+        print(f"Error in Gemini API request: {str(e)}")
+        return "I apologize, but I'm having trouble processing your request right now. Please try again later."
     except Exception as e:
-        return "An error occurred while processing your request. Please try again later."
+        print(f"Unexpected error in chat_with_gemini: {str(e)}")
+        return "I encountered an unexpected error. Please try again."
 
+# Modified run configuration for Render
 if __name__ == "__main__":
-    app.run(debug=True, port=5000)
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host='0.0.0.0', port=port)
