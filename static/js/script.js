@@ -63,6 +63,17 @@ document.addEventListener('DOMContentLoaded', () => {
             messageDiv.textContent = text;
         }
         
+        // Remove any existing animation classes
+        messageDiv.style.animation = 'none';
+        messageDiv.offsetHeight; // Trigger reflow
+        
+        // Add animation based on message type
+        if (className === 'user-message') {
+            messageDiv.style.animation = 'slideInRight 0.3s ease-out';
+        } else {
+            messageDiv.style.animation = 'slideInLeft 0.3s ease-out';
+        }
+        
         // Add click event listeners to all links
         if (isHTML) {
             const links = messageDiv.getElementsByTagName('a');

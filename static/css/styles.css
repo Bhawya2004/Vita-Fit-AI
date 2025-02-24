@@ -14,7 +14,7 @@ body {
 
 .container {
     background: rgba(255, 255, 255, 0.95);
-    border-radius: 20px 20px 0 0; /* Round only top corners */
+    border-radius: 20px;
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
     padding: 20px;
     width: 80%;
@@ -72,6 +72,9 @@ h1 {
     margin: 15px 0;
     max-width: 80%;
     word-wrap: break-word;
+    opacity: 1;
+    transform: translateX(0);
+    will-change: transform, opacity;
 }
 
 .chat-container .message:first-child {
@@ -81,6 +84,7 @@ h1 {
 }
 
 .bot-message {
+    animation: slideInLeft 0.3s ease-out;
     background: #f0f0f0;
     color: black;
     margin-right: auto;
@@ -89,6 +93,7 @@ h1 {
 }
 
 .user-message {
+    animation: slideInRight 0.3s ease-out;
     background: #00b09b;
     color: white;
     margin-left: auto;
@@ -601,10 +606,10 @@ input:checked + .slider:before {
     padding: 15px 20px;
     width: 80%;
     max-width: 800px;
-    border-radius: 0 0 20px 20px; /* Round only bottom corners */
+    border-radius: 20px;
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
     border-top: 1px solid rgba(0, 0, 0, 0.1);
-    margin: 0 auto;
+    margin: 10px auto 0;
 }
 
 .footer-content {
@@ -650,14 +655,11 @@ input:checked + .slider:before {
         padding: 15px;
     }
 
-    .container {
+    .container, .footer {
         width: 90%;
-        padding: 15px;
-        margin: 0 auto;
     }
 
     .footer {
-        width: 90%;
         padding: 12px 15px;
     }
 
@@ -697,14 +699,11 @@ input:checked + .slider:before {
         padding: 10px;
     }
 
-    .container {
+    .container, .footer {
         width: 95%;
-        padding: 10px;
-        margin: 0 auto;
     }
 
     .footer {
-        width: 95%;
         padding: 10px;
     }
 
@@ -746,4 +745,27 @@ input:checked + .slider:before {
 /* Added to ensure proper box sizing throughout */
 * {
     box-sizing: border-box;
+}
+
+/* Message animations */
+@keyframes slideInRight {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+@keyframes slideInLeft {
+    from {
+        transform: translateX(-100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
 } 
