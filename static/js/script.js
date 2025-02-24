@@ -21,7 +21,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (data.error) {
                     addMessage('Sorry, there was an error processing your request.', 'bot-message');
                 } else {
-                    addMessage(data.response, 'bot-message');
+                    // Convert YouTube links to clickable links
+                    const formattedResponse = formatMessage(data.response);
+                    addMessage(formattedResponse, 'bot-message', true);
                 }
             })
             .catch(error => {
@@ -31,37 +33,48 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    function addMessage(text, className) {
+    function formatMessage(text) {
+        // Regular expression to match YouTube URLs
+        const youtubeRegex = /(https?:\/\/)?(www\.)?(youtube\.com|youtu\.be)\/(watch\?v=)?([a-zA-Z0-9_-]+)(\S*)/g;
+        
+        // Regular expression to match any URL
+        const urlRegex = /(https?:\/\/[^\s]+)/g;
+        
+        // Replace YouTube URLs with clickable links
+        text = text.replace(youtubeRegex, '<a href="$&" target="_blank" rel="noopener noreferrer">Click here to watch the video</a>');
+        
+        // Replace other URLs with clickable links
+        text = text.replace(urlRegex, function(url) {
+            if (!url.match(youtubeRegex)) {
+                return `<a href="${url}" target="_blank" rel="noopener noreferrer">${url}</a>`;
+            }
+            return url;
+        });
+        
+        return text;
+    }
+
+    function addMessage(text, className, isHTML = false) {
         const messageDiv = document.createElement('div');
         messageDiv.className = `message ${className}`;
-        chatContainer.appendChild(messageDiv);
-
-        if (className === 'bot-message') {
-            // Type effect for bot messages
-            let index = 0;
-            const typingSpeed = 20; // Adjust speed (lower = faster)
-            
-            function typeNextCharacter() {
-                if (index < text.length) {
-                    messageDiv.innerHTML += text.charAt(index);
-                    index++;
-                    chatContainer.scrollTop = chatContainer.scrollHeight;
-                    setTimeout(typeNextCharacter, typingSpeed);
-                } else {
-                    // After typing complete, convert URLs to clickable links
-                    const urlRegex = /(https?:\/\/[^\s]+)/g;
-                    messageDiv.innerHTML = messageDiv.innerHTML.replace(urlRegex, (url) => {
-                        return `<a href="${url}" target="_blank" rel="noopener noreferrer">${url}</a>`;
-                    });
-                }
-            }
-            
-            typeNextCharacter();
+        if (isHTML) {
+            messageDiv.innerHTML = text;
         } else {
-            // User messages appear instantly
             messageDiv.textContent = text;
         }
         
+        // Add click event listeners to all links
+        if (isHTML) {
+            const links = messageDiv.getElementsByTagName('a');
+            Array.from(links).forEach(link => {
+                link.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    window.open(link.href, '_blank');
+                });
+            });
+        }
+        
+        chatContainer.appendChild(messageDiv);
         chatContainer.scrollTop = chatContainer.scrollHeight;
     }
 
