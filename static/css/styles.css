@@ -21,6 +21,9 @@ body {
     max-width: 800px;
     position: relative;
     margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    min-height: calc(100vh - 40px);
 }
 
 .header {
@@ -60,10 +63,10 @@ h1 {
 }
 
 .chat-container {
-    height: 400px;
+    flex: 1;
     overflow-y: auto;
-    padding: 0 10px;
     margin-bottom: 20px;
+    padding: 0 10px;
 }
 
 .message {
@@ -106,7 +109,7 @@ h1 {
     align-items: center;
     gap: 10px;
     padding: 10px;
-    width: calc(100% - 20px);
+    width: 100%;
     margin: 0 auto;
     box-sizing: border-box;
 }
@@ -132,6 +135,7 @@ h1 {
     display: flex;
     align-items: center;
     justify-content: center;
+    min-width: fit-content;
 }
 
 .send-icon {
@@ -625,14 +629,11 @@ input:checked + .slider:before {
 }
 
 .footer {
-    background: rgba(255, 255, 255, 0.95);
+    margin-top: auto;
     padding: 15px 20px;
-    width: 80%;
-    max-width: 800px;
     border-radius: 20px;
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-    border-top: 1px solid rgba(0, 0, 0, 0.1);
-    margin: 10px auto 0;
+    background: rgba(255, 255, 255, 0.95);
+    margin-bottom: 10px;
 }
 
 .footer-content {
@@ -674,26 +675,27 @@ input:checked + .slider:before {
 
 /* Responsive adjustments */
 @media (max-width: 768px) {
-    body {
+    .container {
+        width: 95%;
+        min-height: calc(100vh - 30px);
         padding: 15px;
     }
 
-    .container, .footer {
-        width: 90%;
+    .chat-container {
+        height: auto;
+        min-height: 350px;
+        margin-bottom: 15px;
     }
 
     .footer {
         padding: 12px 15px;
+        margin-bottom: 8px;
     }
 
     .footer-content {
         flex-direction: column;
         gap: 10px;
         text-align: center;
-    }
-
-    .chat-container {
-        height: 350px;
     }
 
     .message {
@@ -718,9 +720,10 @@ input:checked + .slider:before {
 
     #send-button {
         padding: 0;
-        width: 50px;
-        height: 50px;
+        width: 45px;
+        height: 45px;
         border-radius: 50%;
+        min-width: 45px;
     }
 
     .send-text {
@@ -729,30 +732,30 @@ input:checked + .slider:before {
 
     .send-icon {
         display: inline-block;
-        font-size: 24px;
+        font-size: 20px;
     }
 
     #message {
-        padding: 12px 20px;
-    }
-
-    .container {
-        width: 95%;
-        padding: 15px;
+        padding: 12px 15px;
+        font-size: 15px;
     }
 }
 
 @media (max-width: 480px) {
-    body {
+    .container {
+        width: 95%;
+        min-height: calc(100vh - 20px);
         padding: 10px;
     }
 
-    .container, .footer {
-        width: 95%;
+    .chat-container {
+        min-height: 300px;
+        margin-bottom: 12px;
     }
 
     .footer {
         padding: 10px;
+        margin-bottom: 5px;
     }
 
     .social-icons {
@@ -761,10 +764,6 @@ input:checked + .slider:before {
 
     .social-icons a {
         font-size: 20px;
-    }
-
-    .chat-container {
-        height: 300px;
     }
 
     .message {
@@ -787,6 +786,25 @@ input:checked + .slider:before {
         margin-top: 12px;
         padding: 14px;
         font-size: 1em;
+    }
+
+    #chat-input {
+        padding: 8px 5px;
+        gap: 6px;
+    }
+
+    #message {
+        padding: 10px 15px;
+    }
+
+    #send-button {
+        width: 40px;
+        height: 40px;
+        min-width: 40px;
+    }
+
+    .send-icon {
+        font-size: 18px;
     }
 }
 
