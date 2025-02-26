@@ -103,16 +103,39 @@ h1 {
 
 #chat-input {
     display: flex;
+    align-items: center;
     gap: 10px;
     padding: 10px;
+    width: calc(100% - 20px);
+    margin: 0 auto;
+    box-sizing: border-box;
 }
 
 #message {
     flex: 1;
     padding: 15px;
     border: 1px solid #ddd;
-    border-radius: 10px;
-    font-size: 1em;
+    border-radius: 25px;
+    font-size: 16px;
+    outline: none;
+    transition: all 0.3s ease;
+}
+
+#send-button {
+    background: #00b09b;
+    color: white;
+    border: none;
+    padding: 15px 30px;
+    border-radius: 25px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.send-icon {
+    display: none;
 }
 
 /* Base button styles with hover effect */
@@ -692,6 +715,31 @@ input:checked + .slider:before {
         margin-top: 15px;
         padding: 16px;
     }
+
+    #send-button {
+        padding: 0;
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+    }
+
+    .send-text {
+        display: none;
+    }
+
+    .send-icon {
+        display: inline-block;
+        font-size: 24px;
+    }
+
+    #message {
+        padding: 12px 20px;
+    }
+
+    .container {
+        width: 95%;
+        padding: 15px;
+    }
 }
 
 @media (max-width: 480px) {
@@ -768,4 +816,9 @@ input:checked + .slider:before {
         transform: translateX(0);
         opacity: 1;
     }
+}
+
+/* Hover effects */
+#send-button:hover {
+    background: #008f7f;
 } 

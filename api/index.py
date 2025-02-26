@@ -219,17 +219,22 @@ app = Flask(__name__,
 )
 CORS(app)
 
-# Load API keys from .env file
+# Load and validate API keys
 load_dotenv()
 api_key = os.getenv("GEMINI_API_KEY")
 youtube_api_key = os.getenv("YOUTUBE_API_KEY")
 
-# Remove debug prints for production
 if not api_key or not youtube_api_key:
-    print("Error: GEMINI_API_KEY or YOUTUBE_API_KEY not found. Please set them in .env file.")
+    print("Error: API keys not found in environment variables")
+    print("Please check your .env file and Render environment settings")
     exit(1)
 
-GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=" + api_key
+# Remove the API key format validation since it might vary
+# if not api_key.startswith("AI") or len(api_key) < 20:
+#     print("Error: Invalid Gemini API key format")
+#     exit(1)
+
+GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1/models/gemini-1.5-pro:generateContent?key=" + api_key
 
 def get_youtube_link(query):
     try:
@@ -271,45 +276,110 @@ def get_youtube_link(query):
         return None
 
 ROLE_INSTRUCTION = """
-You are FitBot, an AI fitness trainer specializing in exercise, nutrition, and wellness. 
-Always respond in English only.
+You are strictly a fitness expert providing detailed, structured, and interactive responses. You must first ask clarifying questions before providing detailed advice.
 
-For greetings (like "hi", "hello", "good morning", etc.), respond warmly with a greeting and invite them to ask about fitness:
-- "Hello! 👋 I'm your personal fitness assistant. How can I help you with your fitness journey today?"
-- "Hi there! 🌟 Ready to help you achieve your fitness goals. What would you like to know?"
-- "Good morning/afternoon/evening! 💪 I'm here to assist with your fitness questions!"
+MANDATORY INTERACTION RULES:
 
-For fitness queries, format your responses as follows:
+1️⃣ For WORKOUT PLAN queries:
+FIRST ASK: "Would you prefer a Push-Pull-Legs (PPL) split or a Bro Split? 
+• PPL: Train each movement pattern twice per week
+• Bro Split: Focus on one muscle group per day"
 
-Guide to [Exercise/Topic]
+Then based on their choice, provide:
+[Selected Split Name]
+• Detailed day-by-day breakdown
+• Exercises per muscle group
+• Sets, reps, and rest periods
+• Weekly schedule
+• Progressive overload tips
 
-Steps:
-• First step
-• Second step
-• Third step
+2️⃣ For EXERCISE TECHNIQUE queries:
+[Exercise Name]
 
-Key Tips:
-• Important tip 1
-• Important tip 2
+Detailed Form Guide:
+• Setup position
+• Movement execution
+• Breathing pattern
+• Form cues
 
-Additional Information:
-[First paragraph with key information]
+Common Mistakes:
+• Form errors
+• Safety issues
+• Corrections
 
-[Second paragraph with more details]
+Muscles Targeted:
+• Primary
+• Secondary
+• Stabilizers
 
-Safety Note:
-[Important safety considerations]
+Video References:
+• For detailed visual guide: [Include specific YouTube tutorial URL]
+• For form corrections: [Include relevant YouTube form guide URL]
 
-For non-fitness queries, respond with:
-"I'm your fitness assistant. I can help you with exercise, nutrition, and wellness questions. Please ask me something related to fitness!"
+3️⃣ For DIET PLAN queries:
+FIRST ASK: "What is your goal - weight gain or weight loss?"
 
-Remember to:
-• Only provide fitness-related information
-• Be encouraging and motivational
-• Never provide medical advice
-• Keep focus on fitness and wellness topics
-• Politely redirect non-fitness queries
-• Always respond in English only
+Then provide based on their answer:
+[Goal-Specific Diet Plan]
+• Daily caloric target
+• Macronutrient breakdown
+• Meal timing strategy
+• Food options list
+• Sample meal plan
+• Supplement recommendations
+
+4️⃣ For GYM EQUIPMENT queries:
+[Target Muscle/Exercise]
+
+Machine Guide:
+• Best options
+• Setup steps
+• Usage tips
+• Safety notes
+
+Video Tutorial:
+• Machine setup guide: [Include relevant YouTube tutorial URL]
+• Proper form demonstration: [Include YouTube form guide URL]
+
+Free Weight Alternatives:
+• Exercise options
+• Required equipment
+• Form guidelines
+
+STRICT RULES:
+1. ALWAYS include relevant YouTube tutorial links for:
+   • Exercise technique demonstrations
+   • Workout form guides
+   • Machine usage tutorials
+   • Movement pattern explanations
+
+2. For ANY non-fitness query (medical, tech, finance, etc.), ONLY respond with:
+"I specialize in fitness-related topics like workouts, nutrition, and gym equipment. Let me know how I can help with your fitness journey!"
+
+3. Never provide:
+• Medical advice
+• Mental health guidance
+• Disease-related information
+• Treatment recommendations
+
+4. Always:
+• Ask clarifying questions first
+• Stay within fitness domain
+• Provide structured responses
+• Include safety precautions
+• Base advice on science
+
+For greetings or general queries, respond:
+"Hello! 👋 I'm your interactive fitness expert. I can help you with:
+
+• Customized workout plans (PPL or Bro Split)
+• Detailed exercise techniques
+• Goal-specific diet plans
+• Gym equipment guidance
+• Supplement advice
+• Recovery strategies
+
+To provide the best guidance, I'll ask you some questions about your preferences. What would you like to know about?"
 """
 
 @app.route('/')
@@ -325,16 +395,17 @@ def chat():
         if not user_message:
             return jsonify({'error': 'No message provided'}), 400
         
-        # Check for appreciation messages first
+        # First try fitness-specific responses
+        fitness_keywords = ["workout", "exercise", "fitness", "yoga", "gym", "diet", "nutrition", "cardio", "weight", "strength", "stretch", "flexibility"]
         appreciation_keywords = ["thanks", "thank you", "thx", "appreciate", "good", "great", "awesome", "excellent", "nice", "cool", "helpful"]
+        
         if any(keyword in user_message for keyword in appreciation_keywords) and len(user_message.split()) < 5:
             import random
             response = random.choice(FITNESS_RESPONSES["appreciation_responses"])
-        # Then check if it's a fitness-related query
-        elif any(keyword in user_message for keyword in ["workout", "exercise", "fitness", "yoga", "gym", "diet", "nutrition", "cardio", "weight", "strength", "stretch", "flexibility"]):
+        elif any(keyword in user_message for keyword in fitness_keywords):
             response = get_fitness_response(user_message)
         else:
-            # If not fitness-related, use Gemini
+            # Only use Gemini for non-fitness queries
             response = chat_with_gemini(user_message)
         
         # Expand exercise keywords list
@@ -372,14 +443,28 @@ def chat_with_gemini(prompt):
         "Content-Type": "application/json"
     }
 
+    # Enhanced list of non-fitness keywords
+    non_fitness_keywords = [
+        'medical', 'disease', 'diagnosis', 'therapy', 'depression', 'anxiety',
+        'technology', 'computer', 'phone', 'politics', 'election', 'government',
+        'finance', 'money', 'investment', 'relationship', 'breakup', 'dating',
+        'programming', 'coding', 'software', 'hardware', 'crypto', 'stock market'
+    ]
+
+    # Check if the prompt contains non-fitness keywords
+    if any(keyword in prompt.lower() for keyword in non_fitness_keywords):
+        return 'I specialize in fitness-related topics like workouts, nutrition, and gym equipment. Let me know how I can help with your fitness journey!'
+
     data = {
         "contents": [{
             "role": "user",
             "parts": [{"text": ROLE_INSTRUCTION + "\nUser: " + prompt}]
         }],
         "generationConfig": {
-            "stopSequences": ["हिंदी", "hindi"],  # Add stop sequences for non-English content
-            "temperature": 0.7
+            "temperature": 0.7,
+            "topK": 40,
+            "topP": 0.95,
+            "maxOutputTokens": 1024,
         }
     }
 
@@ -391,7 +476,16 @@ def chat_with_gemini(prompt):
         bot_response = response_data.get("candidates", [{}])[0].get("content", {}).get("parts", [{}])[0].get("text", "")
         
         if not bot_response:
-            return "I'm here to assist with fitness inquiries. How can I help?"
+            return """Hello! 👋 I'm your interactive fitness expert. I can help you with:
+
+• Customized workout plans (PPL or Bro Split)
+• Detailed exercise techniques
+• Goal-specific diet plans
+• Gym equipment guidance
+• Supplement advice
+• Recovery strategies
+
+To provide the best guidance, I'll ask you some questions about your preferences. What would you like to know about?"""
         
         return bot_response.strip()
     except requests.exceptions.RequestException as e:
@@ -401,7 +495,47 @@ def chat_with_gemini(prompt):
         print(f"Unexpected error in chat_with_gemini: {str(e)}")
         return "I encountered an unexpected error. Please try again."
 
+def list_available_models():
+    try:
+        # Add API key as query parameter
+        url = f"https://generativelanguage.googleapis.com/v1beta/models?key={api_key}"
+        response = requests.get(url)
+        
+        print(f"Status Code: {response.status_code}")
+        if response.status_code == 200:
+            models = response.json()
+            print("\nAvailable Models:")
+            for model in models.get('models', []):
+                print(f"- Name: {model.get('name')}")
+                print(f"  Display Name: {model.get('displayName')}")
+                print(f"  Description: {model.get('description')}")
+                print()
+        else:
+            print(f"Error response: {response.text}")
+            
+    except Exception as e:
+        print(f"Error listing models: {str(e)}")
+
+@app.route('/list-models', methods=['GET'])
+def list_models_endpoint():
+    try:
+        url = f"https://generativelanguage.googleapis.com/v1beta/models?key={api_key}"
+        response = requests.get(url)
+        
+        if response.status_code == 200:
+            return jsonify(response.json())
+        else:
+            return jsonify({'error': response.text}), response.status_code
+            
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
 # Modified run configuration for Render
 if __name__ == "__main__":
+    # List models before starting the server
+    # print("Checking available models...")
+    # list_available_models()
+    
+    # Your existing code
     port = int(os.environ.get("PORT", 5000))
     app.run(host='0.0.0.0', port=port)
