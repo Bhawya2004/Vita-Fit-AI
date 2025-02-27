@@ -1,6 +1,6 @@
 document.addEventListener('DOMContentLoaded', () => {
-    const messageInput = document.getElementById('message');
-    const sendButton = document.getElementById('send-button');
+    const messageInput = document.querySelector('.query-input');
+    const sendButton = document.querySelector('.send-button');
     const chatContainer = document.getElementById('chat-container');
 
     function sendMessage() {
@@ -21,7 +21,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (data.error) {
                     addMessage('Sorry, there was an error processing your request.', 'bot-message');
                 } else {
-                    // Convert YouTube links to clickable links
                     const formattedResponse = formatMessage(data.response);
                     addMessage(formattedResponse, 'bot-message', true);
                 }
