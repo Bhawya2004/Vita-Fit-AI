@@ -839,4 +839,45 @@ input:checked + .slider:before {
 /* Hover effects */
 #send-button:hover {
     background: #008f7f;
+}
+
+/* Chatbot container styling */
+.chatbot-container {
+    width: 100%; /* Full width */
+    max-width: 400px; /* Set a maximum width for the chatbot */
+    margin: 0 auto; /* Center the container */
+    padding: 10px; /* Add padding for better appearance */
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); /* Optional shadow for aesthetics */
+}
+
+/* Input field styling */
+.query-input {
+    width: calc(100% - 60px); /* Adjust width to fit within the container */
+    padding: 10px; /* Add padding for better appearance */
+    border: 1px solid #ccc; /* Border styling */
+    border-radius: 5px; /* Rounded corners */
+    margin-right: 10px; /* Space between input and button */
+    box-sizing: border-box; /* Include padding and border in the element's total width */
+}
+
+/* Send button styling */
+.send-button {
+    padding: 10px 15px; /* Add padding for better appearance */
+    background-color: #007bff; /* Button color */
+    color: white; /* Text color */
+    border: none; /* Remove border */
+    border-radius: 5px; /* Rounded corners */
+    cursor: pointer; /* Pointer cursor on hover */
+}
+
+/* Optional: Add hover effect for the button */
+.send-button:hover {
+    background-color: #0056b3; /* Darker shade on hover */
+}
+
+/* Flexbox for aligning input and button */
+.input-container {
+    display: flex; /* Use flexbox for alignment */
+    align-items: center; /* Center items vertically */
+    margin-top: 10px; /* Space above the input container */
 } 
