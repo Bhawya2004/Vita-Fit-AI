@@ -1,124 +1,235 @@
 document.addEventListener('DOMContentLoaded', () => {
-    const messageInput = document.querySelector('.query-input');
-    const sendButton = document.querySelector('.send-button');
+    const messageInput = document.getElementById('message');
+    const sendButton = document.getElementById('send-button');
     const chatContainer = document.getElementById('chat-container');
-
-    function sendMessage() {
-        const message = messageInput.value.trim();
-        if (message) {
-            addMessage(message, 'user-message');
-            messageInput.value = '';
+    const imageUploadBtn = document.getElementById('image-upload-btn');
+    const imageInput = document.getElementById('image-input');
+    const voiceInputBtn = document.getElementById('voice-input-btn');
+    
+    let currentImage = null;
+    let recognition = null;
+    
+    // Initialize speech recognition
+    if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+        recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+        recognition.continuous = false;
+        recognition.interimResults = true;
+        
+        // Support both English and Hindi automatically
+        recognition.lang = 'en-IN'; // English (India) to better support both English and Hindi
+        
+        recognition.onstart = () => {
+            voiceInputBtn.innerHTML = '<i class="fas fa-microphone-slash"></i>';
+            voiceInputBtn.classList.add('recording');
+            messageInput.placeholder = "Listening...";
             
-            fetch('/chat', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ message: message }),
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.error) {
-                    addMessage('Sorry, there was an error processing your request.', 'bot-message');
-                } else {
-                    const formattedResponse = formatMessage(data.response);
-                    addMessage(formattedResponse, 'bot-message', true);
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                addMessage('Sorry, there was an error processing your request.', 'bot-message');
-            });
-        }
-    }
-
-    function formatMessage(text) {
-        // Regular expression to match YouTube URLs
-        const youtubeRegex = /(https?:\/\/)?(www\.)?(youtube\.com|youtu\.be)\/(watch\?v=)?([a-zA-Z0-9_-]+)(\S*)/g;
+            // Add a visual indicator in the chat
+            const listeningIndicator = document.createElement('div');
+            listeningIndicator.id = 'listening-indicator';
+            listeningIndicator.className = 'message bot-message analyzing-message';
+            listeningIndicator.textContent = 'Listening... (speak in English or Hindi)';
+            chatContainer.appendChild(listeningIndicator);
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+        };
         
-        // Regular expression to match any URL
-        const urlRegex = /(https?:\/\/[^\s]+)/g;
-        
-        // Replace YouTube URLs with clickable links
-        text = text.replace(youtubeRegex, '<a href="$&" target="_blank" rel="noopener noreferrer">Click here to watch the video</a>');
-        
-        // Replace other URLs with clickable links
-        text = text.replace(urlRegex, function(url) {
-            if (!url.match(youtubeRegex)) {
-                return `<a href="${url}" target="_blank" rel="noopener noreferrer">${url}</a>`;
+        recognition.onend = () => {
+            voiceInputBtn.innerHTML = '<i class="fas fa-microphone"></i>';
+            voiceInputBtn.classList.remove('recording');
+            messageInput.placeholder = "Ask me about fitness...";
+            
+            // Remove the listening indicator
+            const listeningIndicator = document.getElementById('listening-indicator');
+            if (listeningIndicator) {
+                chatContainer.removeChild(listeningIndicator);
             }
-            return url;
+        };
+        
+        recognition.onresult = (event) => {
+            let interimTranscript = '';
+            let finalTranscript = '';
+            
+            for (let i = event.resultIndex; i < event.results.length; i++) {
+                const transcript = event.results[i][0].transcript;
+                if (event.results[i].isFinal) {
+                    finalTranscript += transcript;
+                } else {
+                    interimTranscript += transcript;
+                }
+            }
+            
+            if (finalTranscript) {
+                messageInput.value = finalTranscript;
+                // Optionally auto-send the message
+                // sendMessage();
+            }
+        };
+        
+        recognition.onerror = (event) => {
+            console.error('Speech recognition error', event.error);
+            voiceInputBtn.innerHTML = '<i class="fas fa-microphone"></i>';
+            voiceInputBtn.classList.remove('recording');
+            
+            // Remove the listening indicator
+            const listeningIndicator = document.getElementById('listening-indicator');
+            if (listeningIndicator) {
+                chatContainer.removeChild(listeningIndicator);
+            }
+            
+            // Show error message
+            addMessage('Sorry, I couldn\'t hear you. Please try again.', 'bot');
+        };
+        
+        // Add click event for voice button
+        voiceInputBtn.addEventListener('click', () => {
+            if (voiceInputBtn.classList.contains('recording')) {
+                recognition.stop();
+            } else {
+                recognition.start();
+            }
         });
-        
-        return text;
+    } else {
+        // Browser doesn't support speech recognition
+        voiceInputBtn.style.display = 'none';
+        console.log('Speech recognition not supported in this browser');
     }
-
-    function addMessage(text, className, isHTML = false) {
-        const messageDiv = document.createElement('div');
-        messageDiv.className = `message ${className}`;
-        if (isHTML) {
-            messageDiv.innerHTML = text;
-        } else {
-            messageDiv.textContent = text;
+    
+    // Image upload functionality
+    imageUploadBtn.addEventListener('click', () => {
+        imageInput.click();
+    });
+    
+    imageInput.addEventListener('change', (event) => {
+        const file = event.target.files[0];
+        if (file && file.type.startsWith('image/')) {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                currentImage = e.target.result;
+                
+                // Show image preview
+                const previewContainer = document.createElement('div');
+                previewContainer.className = 'message user-message';
+                
+                const imagePreview = document.createElement('img');
+                imagePreview.src = currentImage;
+                imagePreview.className = 'image-preview';
+                
+                previewContainer.appendChild(imagePreview);
+                chatContainer.appendChild(previewContainer);
+                
+                // Add analyzing message
+                addMessage('Analyzing your image...', 'bot');
+                
+                // Send the image to the server
+                sendImageToServer(currentImage);
+                
+                // Reset the file input
+                imageInput.value = '';
+            };
+            reader.readAsDataURL(file);
         }
-        
-        // Remove any existing animation classes
-        messageDiv.style.animation = 'none';
-        messageDiv.offsetHeight; // Trigger reflow
-        
-        // Add animation based on message type
-        if (className === 'user-message') {
-            messageDiv.style.animation = 'slideInRight 0.3s ease-out';
-        } else {
-            messageDiv.style.animation = 'slideInLeft 0.3s ease-out';
-        }
-        
-        // Add click event listeners to all links
-        if (isHTML) {
-            const links = messageDiv.getElementsByTagName('a');
-            Array.from(links).forEach(link => {
-                link.addEventListener('click', (e) => {
-                    e.preventDefault();
-                    window.open(link.href, '_blank');
-                });
-            });
-        }
-        
-        chatContainer.appendChild(messageDiv);
-        chatContainer.scrollTop = chatContainer.scrollHeight;
-    }
-
-    // Event listeners
+    });
+    
+    // Send message when button is clicked
     sendButton.addEventListener('click', sendMessage);
+    
+    // Send message when Enter key is pressed
     messageInput.addEventListener('keypress', (e) => {
         if (e.key === 'Enter') {
             sendMessage();
         }
     });
-});
-
-// Theme toggle functionality
-function toggleTheme() {
-    const body = document.body;
-    const checkbox = document.getElementById('theme-switch');
     
-    if (checkbox.checked) {
-        body.setAttribute('data-theme', 'dark');
-    } else {
-        body.removeAttribute('data-theme');
+    function sendMessage() {
+        const message = messageInput.value.trim();
+        if (message) {
+            // Add user message to chat
+            addMessage(message, 'user');
+            
+            // Clear input field
+            messageInput.value = '';
+            
+            // Send message to server
+            fetch('/chat', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ message: message })
+            })
+            .then(response => response.json())
+            .then(data => {
+                // Add bot response to chat
+                addMessage(data.response, 'bot');
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                addMessage('Sorry, there was an error processing your request.', 'bot');
+            });
+        }
     }
     
-    // Save preference
-    localStorage.setItem('theme', checkbox.checked ? 'dark' : 'light');
-}
-
-// Initialize theme on page load
-document.addEventListener('DOMContentLoaded', () => {
-    const savedTheme = localStorage.getItem('theme');
-    const checkbox = document.getElementById('theme-switch');
+    function sendImageToServer(imageData) {
+        fetch('/chat', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ image: imageData })
+        })
+        .then(response => response.json())
+        .then(data => {
+            // Remove the "Analyzing" message
+            const analyzingMessage = document.querySelector('.analyzing-message');
+            if (analyzingMessage) {
+                chatContainer.removeChild(analyzingMessage);
+            }
+            
+            // Add bot response to chat
+            addMessage(data.response, 'bot');
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            addMessage('Sorry, there was an error analyzing your image.', 'bot');
+        });
+    }
     
+    function addMessage(text, sender) {
+        const messageElement = document.createElement('div');
+        messageElement.className = `message ${sender}-message`;
+        
+        // Process markdown-like links in the text
+        const processedText = text.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>');
+        
+        messageElement.innerHTML = processedText;
+        chatContainer.appendChild(messageElement);
+        
+        // Scroll to the bottom of the chat
+        chatContainer.scrollTop = chatContainer.scrollHeight;
+    }
+    
+    // Theme toggle functionality
+    window.toggleTheme = function() {
+        const body = document.body;
+        if (body.getAttribute('data-theme') === 'dark') {
+            body.removeAttribute('data-theme');
+        } else {
+            body.setAttribute('data-theme', 'dark');
+        }
+    };
+    
+    // Check for saved theme preference
+    const savedTheme = localStorage.getItem('theme');
     if (savedTheme === 'dark') {
         document.body.setAttribute('data-theme', 'dark');
-        checkbox.checked = true;
+        document.getElementById('theme-switch').checked = true;
     }
-}); 
+    
+    // Save theme preference when changed
+    document.getElementById('theme-switch').addEventListener('change', function() {
+        if (this.checked) {
+            localStorage.setItem('theme', 'dark');
+        } else {
+            localStorage.setItem('theme', 'light');
+        }
+    });
+});

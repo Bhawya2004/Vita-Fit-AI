@@ -911,3 +911,65 @@ input:checked + .slider:before {
     align-items: center; /* Center items vertically */
     margin-top: 10px; /* Space above the input container */
 }
+
+/* Image upload button styles */
+.input-container {
+    display: flex;
+    flex: 1;
+    position: relative;
+}
+
+.upload-btn {
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    color: #666;
+    cursor: pointer;
+    font-size: 1.2rem;
+    transition: color 0.3s;
+    z-index: 10;
+}
+
+.upload-btn:hover {
+    color: #28a745;
+}
+
+/* Voice input button styles */
+.voice-btn {
+    position: absolute;
+    right: 40px; /* Position it to the left of the image upload button */
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    color: #666;
+    cursor: pointer;
+    font-size: 1.2rem;
+    transition: color 0.3s;
+    z-index: 10;
+}
+
+.voice-btn:hover {
+    color: #28a745;
+}
+
+.voice-btn.recording {
+    color: #dc3545; /* Red color when recording */
+    animation: voice-pulse 1.5s infinite;
+}
+
+/* Animation for voice recording button */
+@keyframes voice-pulse {
+    0% { opacity: 1; }
+    50% { opacity: 0.5; }
+    100% { opacity: 1; }
+}
+
+/* Analyzing message styles */
+.analyzing-message {
+    font-style: italic;
+    color: #666;
+}
