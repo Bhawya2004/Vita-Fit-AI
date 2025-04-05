@@ -862,12 +862,42 @@ input:checked + .slider:before {
 
 /* Send button styling */
 .send-button {
-    padding: 10px 15px; /* Add padding for better appearance */
-    background-color: #007bff; /* Button color */
-    color: white; /* Text color */
-    border: none; /* Remove border */
-    border-radius: 5px; /* Rounded corners */
-    cursor: pointer; /* Pointer cursor on hover */
+    background-color: #28a745;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    outline: none;
+}
+
+.chat-container .send-button,
+.chat-container .send-button:hover,
+.chat-container .send-button:focus,
+.chat-container .send-button:active {
+    background-color: #28a745;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    outline: none;
+}
+
+.chat-container .send-button:hover {
+    transform: scale(1.05);
+    box-shadow: 0 0 10px rgba(40, 167, 69, 0.5);
+}
+
+/* Remove any existing hover effects */
+.chat-container .send-button:hover,
+.chat-container .send-button:focus,
+.chat-container .send-button:active {
+    background-color: #28a745;
+    transform: none;
+    box-shadow: none;
 }
 
 /* Optional: Add hover effect for the button */
@@ -880,4 +910,4 @@ input:checked + .slider:before {
     display: flex; /* Use flexbox for alignment */
     align-items: center; /* Center items vertically */
     margin-top: 10px; /* Space above the input container */
-} 
+}
