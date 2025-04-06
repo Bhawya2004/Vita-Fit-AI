@@ -1,9 +1,10 @@
 from flask import Flask, request, jsonify, render_template
 from flask_cors import CORS
-import google.generativeai as genai
+import requests
 import os
 from dotenv import load_dotenv
 import base64
+import json
 
 # Change the app initialization to include template and static folders
 app = Flask(__name__, 
@@ -19,11 +20,6 @@ api_key = os.getenv("GEMINI_API_KEY")
 if not api_key:
     print("Error: GEMINI_API_KEY not found. Please set it in a .env file.")
     exit(1)
-
-# Configure Gemini API
-genai.configure(api_key=api_key)
-# Use gemini-1.5-pro instead of gemini-2.0-flash for multimodal capabilities
-model = genai.GenerativeModel('gemini-1.5-pro')
 
 # Initialize chat sessions storage
 chat_sessions = {}
@@ -79,36 +75,70 @@ def chat_with_gemini(prompt, session_id, image_data=None):
         # For history tracking
         session_history.append(user_prompt)
         
+        # API endpoint
+        api_url = f"https://generativelanguage.googleapis.com/v1/models/gemini-1.5-pro:generateContent?key={api_key}"
+        
+        # Prepare headers
+        headers = {
+            "Content-Type": "application/json"
+        }
+        
         # For multimodal input handling
         if image_data:
-            # Convert base64 image to bytes
-            try:
-                # Remove data URL prefix if present
-                if "base64," in image_data:
-                    image_data = image_data.split("base64,")[1]
-                
-                image_bytes = base64.b64decode(image_data)
-                
-                # Create multimodal content
-                response = model.generate_content(
-                    [context, user_prompt, {"mime_type": "image/jpeg", "data": image_bytes}]
-                )
-            except Exception as img_error:
-                print(f"Image processing error: {str(img_error)}")
-                return "I couldn't process the image you sent. Please make sure it's a valid image file."
+            # Remove data URL prefix if present
+            if "base64," in image_data:
+                image_data = image_data.split("base64,")[1]
+            
+            # Prepare request payload with image
+            payload = {
+                "contents": [
+                    {
+                        "parts": [
+                            {"text": context + "\n" + user_prompt},
+                            {
+                                "inline_data": {
+                                    "mime_type": "image/jpeg",
+                                    "data": image_data
+                                }
+                            }
+                        ]
+                    }
+                ]
+            }
         else:
-            # Text-only response
-            full_prompt = context + "\n" + user_prompt
-            response = model.generate_content(full_prompt)
+            # Text-only payload
+            payload = {
+                "contents": [
+                    {
+                        "parts": [
+                            {"text": context + "\n" + user_prompt}
+                        ]
+                    }
+                ]
+            }
         
-        # Store the conversation
-        if response and response.text:
-            session_history.append(f"Assistant: {response.text.strip()}")
+        # Make API request
+        response = requests.post(api_url, headers=headers, json=payload)
         
-        # Check if response was generated successfully
-        if response and response.text:
-            return response.text.strip()
+        # Process response
+        if response.status_code == 200:
+            response_json = response.json()
+            
+            # Extract text from response
+            if "candidates" in response_json and len(response_json["candidates"]) > 0:
+                candidate = response_json["candidates"][0]
+                if "content" in candidate and "parts" in candidate["content"]:
+                    parts = candidate["content"]["parts"]
+                    if len(parts) > 0 and "text" in parts[0]:
+                        response_text = parts[0]["text"].strip()
+                        
+                        # Store the conversation
+                        session_history.append(f"Assistant: {response_text}")
+                        
+                        return response_text
         
+        # If we get here, something went wrong
+        print(f"API response: {response.status_code}, {response.text}")
         return "I'm having trouble understanding. Could you rephrase that?"
 
     except Exception as e:
